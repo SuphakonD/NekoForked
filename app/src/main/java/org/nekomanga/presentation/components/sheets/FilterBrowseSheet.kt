@@ -357,13 +357,15 @@ fun FilterBrowseSheet(
                         queryText = ""
                         resetClick()
                     },
-                    shape = RoundedCornerShape(Size.extraLarge),
+                    shape = RoundedCornerShape(35),
                     colors =
-                        ButtonDefaults.textButtonColors(
-                            contentColor = MaterialTheme.colorScheme.primary
-                        ),
+                        ButtonDefaults.textButtonColors(contentColor = themeColorState.buttonColor),
                 ) {
-                    Icon(imageVector = Icons.Default.RestartAlt, contentDescription = null)
+                    Icon(
+                        imageVector = Icons.Default.RestartAlt,
+                        contentDescription = null,
+                        tint = themeColorState.buttonColor,
+                    )
                     Gap(Size.tiny)
                     Text(
                         text = stringResource(id = R.string.reset),
@@ -378,13 +380,17 @@ fun FilterBrowseSheet(
                 ) {
                     TextButton(
                         onClick = { showSaveFilterDialog = true },
-                        shape = RoundedCornerShape(Size.extraLarge),
+                        shape = RoundedCornerShape(35),
                         colors =
                             ButtonDefaults.textButtonColors(
-                                contentColor = MaterialTheme.colorScheme.primary
+                                contentColor = themeColorState.buttonColor
                             ),
                     ) {
-                        Icon(imageVector = Icons.Default.Save, contentDescription = null)
+                        Icon(
+                            imageVector = Icons.Default.Save,
+                            contentDescription = null,
+                            tint = themeColorState.buttonColor,
+                        )
                         Gap(Size.tiny)
                         Text(
                             text = stringResource(id = R.string.save),
@@ -395,22 +401,22 @@ fun FilterBrowseSheet(
 
                 ElevatedButton(
                     onClick = filterClick,
-                    shape = RoundedCornerShape(Size.extraLarge),
+                    shape = RoundedCornerShape(35),
                     colors =
                         ButtonDefaults.elevatedButtonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
+                            containerColor = themeColorState.buttonColor
                         ),
                 ) {
                     Icon(
                         imageVector = Icons.Default.Search,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary,
+                        tint = MaterialTheme.colorScheme.surface,
                     )
                     Gap(Size.tiny)
                     Text(
                         text = stringResource(id = R.string.filter),
                         style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onPrimary,
+                        color = MaterialTheme.colorScheme.surface,
                     )
                 }
             }

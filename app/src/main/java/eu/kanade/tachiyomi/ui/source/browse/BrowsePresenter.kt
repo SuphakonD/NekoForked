@@ -118,29 +118,22 @@ class BrowsePresenter(
                 }
             },
             onSuccess = { hasNextPage, items, nextKey ->
-                val allDisplayManga =
-                    (_browseScreenState.value.displayMangaHolder.allDisplayManga + items)
-                        .distinctBy { it.url }
-
-                val filteredDisplayManga =
-                    allDisplayManga.filterVisibility(preferences).toImmutableList()
                 _browseScreenState.update { state ->
+                    val allDisplayManga =
+                        (state.displayMangaHolder.allDisplayManga + items).distinctBy { it.url }
                     state.copy(
                         screenType = BrowseScreenType.Filter,
                         displayMangaHolder =
                             DisplayMangaHolder(
                                 BrowseScreenType.Filter,
                                 allDisplayManga.toImmutableList(),
-                                filteredDisplayManga.toImmutableList(),
+                                allDisplayManga.filterVisibility(preferences).toImmutableList(),
                             ),
                         initialLoading = false,
                         pageLoading = false,
                         page = nextKey,
                         endReached = !hasNextPage,
                     )
-                }
-                if (filteredDisplayManga.isEmpty()) {
-                    loadNextItems()
                 }
             },
         )

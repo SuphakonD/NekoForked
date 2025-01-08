@@ -2,6 +2,7 @@ package eu.kanade.tachiyomi.util.chapter
 
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
+import eu.kanade.tachiyomi.data.database.models.scanlatorList
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import org.nekomanga.constants.MdConstants
@@ -31,8 +32,7 @@ class ChapterFilter(
             manga.bookmarkedFilter(mangaDetailsPreferences) == Manga.CHAPTER_SHOW_NOT_BOOKMARKED
 
         // if none of the filters are enabled skip the filtering of them
-        val filteredChapters = filterChaptersByScanlatorsAndLanguage(chapters, manga, preferences)
-
+        val filteredChapters = filterChaptersByScanlators(chapters, manga)
         return if (
             readEnabled ||
                 unreadEnabled ||
@@ -60,7 +60,22 @@ class ChapterFilter(
         manga: Manga,
         selectedChapter: T? = null,
     ): List<T> {
-        var filteredChapters = filterChaptersByScanlatorsAndLanguage(chapters, manga, preferences)
+        var filteredChapters = filterChaptersByScanlators(chapters, manga)
+
+        val blockedScanlator = preferences.blockedScanlators().get()
+
+        if (blockedScanlator.isNotEmpty()) {
+            filteredChapters =
+                filteredChapters.filter { chp ->
+                    chp.scanlatorList().none { it in blockedScanlator }
+                }
+        }
+
+        // filter out unsupported official scanlators
+        filteredChapters =
+            filteredChapters.filter { chp ->
+                !MdConstants.UnsupportedOfficialScanlators.contains(chp.scanlator)
+            }
 
         // if filter preferences are not enabled don't even filter
         if (
@@ -113,36 +128,15 @@ class ChapterFilter(
         return filteredChapters
     }
 
-    /**
-     * filters chapters for scanlators, excludes globally blocked, unsupported and manga specific
-     * filtered
-     */
     /** filters chapters for scanlators */
-    fun <T : Chapter> filterChaptersByScanlatorsAndLanguage(
-        chapters: List<T>,
-        manga: Manga,
-        preferences: PreferencesHelper,
-    ): List<T> {
-
-        val blockedGroupList = preferences.blockedScanlators().get()
-        val filteredGroupList = ChapterUtil.getScanlators(manga.filtered_scanlators)
-        val filteredLanguagesList = ChapterUtil.getLanguages(manga.filtered_language)
-
-        return chapters.filter {
-            val languages = ChapterUtil.getLanguages(it.language)
-            val languageNotFound = languages.none { language -> language in filteredLanguagesList }
-
-            val groups = ChapterUtil.getScanlators(it.scanlator)
-
-            val groupNotFound =
-                groups.none { group ->
-                    val inBlocked = group in blockedGroupList
-                    val inFiltered = group in filteredGroupList
-                    val unsupported = group in MdConstants.UnsupportedOfficialGroupList
-                    inBlocked || inFiltered || unsupported
+    fun <T : Chapter> filterChaptersByScanlators(chapters: List<T>, manga: Manga): List<T> {
+        return manga.filtered_scanlators?.let { filteredScanlatorString ->
+            val filteredScanlators = ChapterUtil.getScanlators(filteredScanlatorString)
+            chapters.filter {
+                ChapterUtil.getScanlators(it.scanlator).none { group ->
+                    filteredScanlators.contains(group)
                 }
-
-            languageNotFound && groupNotFound
-        }
+            }
+        } ?: chapters
     }
 }
